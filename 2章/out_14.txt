@@ -1,0 +1,11 @@
+--- ファイル 'popular-names.txt' の先頭10行の1列目 ---
+Mary
+Anna
+Emma
+Elizabeth
+Minnie
+Margaret
+Ida
+Alice
+Bertha
+Sarah
