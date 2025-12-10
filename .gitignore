@@ -1,0 +1,4 @@
+.venv/
+__pycache__/
+.env
+/home/koyama/nlp-100knocks/6章/code/GoogleNews-vectors-negative300.bin.gz

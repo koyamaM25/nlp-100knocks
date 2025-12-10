@@ -1,0 +1,5 @@
+Total pairs: 353
+OOV pairs: 0
+Used pairs: 353
+Spearman correlation (rho): 0.700017
+p-value: 2.868667e-53

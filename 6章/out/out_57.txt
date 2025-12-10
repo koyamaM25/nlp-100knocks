@@ -1,0 +1,15 @@
+
+=== Cluster 0 ===
+Russia, Iran, Cuba
+
+=== Cluster 1 ===
+Canada, Sweden, Norway, Finland
+
+=== Cluster 2 ===
+Afghanistan, Iraq, Pakistan
+
+=== Cluster 3 ===
+Japan, Thailand, China, Australia, Vietnam
+
+=== Cluster 4 ===
+Switzerland, Italy, Egypt, Spain, France, Greece, Germany, England

@@ -1,0 +1,3 @@
+Overall accuracy: 0.7359
+Semantic accuracy: 0.7309
+Syntactic accuracy: 0.7400

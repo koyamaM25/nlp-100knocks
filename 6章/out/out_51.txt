@@ -1,0 +1,2 @@
+Vector for United_States U.S
+similarity : 0.3638412058353424
