@@ -2,3 +2,5 @@
 __pycache__/
 .env
 6章/code/GoogleNews-vectors-negative300.bin.gz
+/home/koyama/nlp-100knocks/8章/out/out_embedding_matrix_70.npy
+/home/koyama/nlp-100knocks/8章/out/out_word2id_70.pkl
