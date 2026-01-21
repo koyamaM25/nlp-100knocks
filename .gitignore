@@ -4,3 +4,10 @@ __pycache__/
 6章/code/GoogleNews-vectors-negative300.bin.gz
 /home/koyama/nlp-100knocks/8章/out/out_embedding_matrix_70.npy
 /home/koyama/nlp-100knocks/8章/out/out_word2id_70.pkl
+/home/koyama/nlp-100knocks/8章/out/out_71_dev.pkl
+/home/koyama/nlp-100knocks/8章/out/out_71_train.pkl
+/home/koyama/nlp-100knocks/8章/out/out_73_model.pt
+/home/koyama/nlp-100knocks/8章/out/out_76model_lstm.pt
+/home/koyama/nlp-100knocks/8章/out/out_77_model_bilstm.pt
+/home/koyama/nlp-100knocks/8章/out/out_78_model_textcnn.pt
+/home/koyama/nlp-100knocks/8章/out/out_79_model_textcnn.pt
