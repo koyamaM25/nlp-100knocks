@@ -1,7 +1,7 @@
 import os
 import pickle
 import random
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 
 import numpy as np
 import torch
@@ -11,12 +11,10 @@ from torch.nn.utils.rnn import pad_sequence
 
 EMB_MATRIX_PATH = "/home/koyama/nlp-100knocks/8章/out/out_70_embedding_matrix.npy"
 TRAIN_PKL_PATH  = "/home/koyama/nlp-100knocks/8章/out/out_71_train.pkl"
-DEV_PKL_PATH    = "/home/koyama/nlp-100knocks/8章/out/out_71_dev.pkl"
+# DEV_PKL_PATH    = "/home/koyama/nlp-100knocks/8章/out/out_71_dev.pkl"
 
 OUT_DIR = "/home/koyama/nlp-100knocks/8章/out"
 os.makedirs(OUT_DIR, exist_ok=True)
-
-SAVE_PATH = os.path.join(OUT_DIR, "out_73_model.pt")
 
 PAD_ID = 0
 
@@ -28,7 +26,7 @@ LR = 1e-3
 WEIGHT_DECAY = 0.0
 NUM_WORKERS = 0
 
-# 埋め込みは固定
+# 埋め込みは固定（問73の要件）
 FREEZE_EMB = True
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -68,7 +66,7 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
         padding_value=PAD_ID
     )  # (B, Lmax)
 
-    # labels: (B,) に整形（(B,1)でも動くが合わせておく）
+    # labels: (B,) に整形
     labels = torch.stack([t.reshape(()) for t in labels_list], dim=0).float()  # (B,)
 
     return {
@@ -88,7 +86,7 @@ class MeanEmbeddingClassifier(nn.Module):
             padding_idx=PAD_ID,
         )
         emb_dim = emb_tensor.shape[1]
-        self.fc = nn.Linear(emb_dim, 1) 
+        self.fc = nn.Linear(emb_dim, 1)
 
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         x = self.embedding(input_ids)  # (B, L, D)
@@ -103,35 +101,6 @@ class MeanEmbeddingClassifier(nn.Module):
         logits = self.fc(sent_vec).squeeze(-1)              # (B,)
         return logits
 
-# 評価（loss / accuracy）
-@torch.no_grad()
-def evaluate(model: nn.Module, loader: DataLoader, criterion: nn.Module) -> Dict[str, float]:
-    model.eval()
-    total_loss = 0.0
-    total_correct = 0
-    total_count = 0  
-
-    for batch in loader:
-        input_ids = batch["input_ids"].to(DEVICE)
-        labels = batch["labels"].to(DEVICE)  # (B,)
-
-        logits = model(input_ids)            # (B,)
-        loss = criterion(logits, labels)     # scalar（batch平均）
-
-        bsz = labels.size(0)
-        total_loss += loss.item() * bsz
-        total_count += bsz
-
-        probs = torch.sigmoid(logits)
-        preds = (probs >= 0.5).float()
-        total_correct += (preds == labels).sum().item()
-
-    return {
-        "loss": total_loss / max(1, total_count),
-        "acc": total_correct / max(1, total_count),
-    }
-
-
 def main():
     set_seed(SEED)
     print(f"device: {DEVICE}")
@@ -140,26 +109,16 @@ def main():
     emb_matrix = np.load(EMB_MATRIX_PATH)  # (V, D) float32
     print("embedding matrix:", emb_matrix.shape)
 
-    # データ
+    # trainデータのみロード（学習で終わらせる）
     with open(TRAIN_PKL_PATH, "rb") as f:
         train_data = pickle.load(f)
-    with open(DEV_PKL_PATH, "rb") as f:
-        dev_data = pickle.load(f)
 
     train_dataset = SSTDataset(train_data)
-    dev_dataset = SSTDataset(dev_data)
 
     train_loader = DataLoader(
         train_dataset,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        num_workers=NUM_WORKERS,
-        collate_fn=collate_fn,
-    )
-    dev_loader = DataLoader(
-        dev_dataset,
-        batch_size=BATCH_SIZE,
-        shuffle=False,
         num_workers=NUM_WORKERS,
         collate_fn=collate_fn,
     )
@@ -170,15 +129,14 @@ def main():
     # 損失
     criterion = nn.BCEWithLogitsLoss()
 
-    # 最適化
+    # 最適化（問73の意図：線形層のみ学習）
     optimizer = torch.optim.AdamW(
         model.fc.parameters(),
         lr=LR,
         weight_decay=WEIGHT_DECAY
     )
 
-    # 学習
-    best_dev_acc = -1.0
+    # 学習（各epoch終了時に保存）
     for epoch in range(1, EPOCHS + 1):
         model.train()
         running_loss = 0.0
@@ -201,23 +159,27 @@ def main():
             total += bsz
 
         train_loss = running_loss / max(1, total)
-        dev_metrics = evaluate(model, dev_loader, criterion)
 
-        print(
-            f"[Epoch {epoch:02d}] "
-            f"train_loss={train_loss:.4f} | "
-            f"dev_loss={dev_metrics['loss']:.4f} | "
-            f"dev_acc={dev_metrics['acc']:.4f}"
+        print(f"[Epoch {epoch:02d}] train_loss={train_loss:.4f}")
+
+        # fcだけ保存
+        epoch_save_path = os.path.join(OUT_DIR, f"out_73_fc_epoch{epoch:02d}.pt")
+        torch.save(
+            {
+                "epoch": epoch,
+                "train_loss": train_loss,
+                "fc_state_dict": model.fc.state_dict(),  # ←ここだけ！
+                "pad_id": PAD_ID,
+                "freeze_emb": FREEZE_EMB,
+                "emb_matrix_path": EMB_MATRIX_PATH,
+            },
+            epoch_save_path
         )
+        print(f"saved: {epoch_save_path}")
 
-        # ベストモデル保存
-        if dev_metrics["acc"] > best_dev_acc:
-            best_dev_acc = dev_metrics["acc"]
-            torch.save(model.state_dict(), SAVE_PATH)
 
-    print(f"saved(best): {SAVE_PATH}")
-    print(f"best_dev_acc: {best_dev_acc:.4f}")
-
+    print("training finished.")
 
 if __name__ == "__main__":
     main()
+

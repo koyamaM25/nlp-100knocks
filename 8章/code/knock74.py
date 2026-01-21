@@ -1,6 +1,10 @@
+# out_74_eval_all_epochs.py
+# out_73_fc_epochXX.pt を全て読み込み、devで評価(loss/acc)を一覧表示する
+
+import os
+import re
 import pickle
-import random
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 import numpy as np
 import torch
@@ -8,43 +12,22 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
-# =========================
-# パス設定（必要に応じて変更）
-# =========================
-EMB_MATRIX_PATH = "/home/koyama/nlp-100knocks/8章/out/out_embedding_matrix_70.npy"
-TRAIN_PKL_PATH  = "/home/koyama/nlp-100knocks/8章/out/out_train_71.pkl"
-DEV_PKL_PATH    = "/home/koyama/nlp-100knocks/8章/out/out_dev_71.pkl"
 
-PAD_ID = 0  # 問題70で <PAD>=0
+# ========= パス設定 =========
+EMB_MATRIX_PATH = "/home/koyama/nlp-100knocks/8章/out/out_70_embedding_matrix.npy"
+DEV_PKL_PATH    = "/home/koyama/nlp-100knocks/8章/out/out_71_dev.pkl"
+OUT_DIR         = "/home/koyama/nlp-100knocks/8章/out"
 
-# =========================
-# 学習設定
-# =========================
-SEED = 42
+# fc-only checkpoint のファイル名パターン
+CKPT_REGEX = re.compile(r"^out_73_fc_epoch(\d+)\.pt$")
+
+PAD_ID = 0
 BATCH_SIZE = 64
-EPOCHS = 5
-LR = 1e-3
-WEIGHT_DECAY = 0.0
 NUM_WORKERS = 0
-
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-# =========================
-# 乱数固定
-# =========================
-def set_seed(seed: int) -> None:
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
-
-# =========================
-# Dataset（問題71の形式に合わせる）
-# =========================
+# ========= Dataset / collate =========
 class SSTDataset(Dataset):
     def __init__(self, data: List[Dict[str, Any]]):
         self.data = data
@@ -60,14 +43,9 @@ class SSTDataset(Dataset):
         }
 
 
-# =========================
-# collate_fn（可変長PAD）
-# =========================
 def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
     input_ids_list = [x["input_ids"] for x in batch]
     labels_list = [x["label"] for x in batch]
-
-    lengths = torch.tensor([t.size(0) for t in input_ids_list], dtype=torch.long)
 
     input_ids = pad_sequence(
         input_ids_list,
@@ -75,71 +53,61 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
         padding_value=PAD_ID
     )  # (B, Lmax)
 
-    attention_mask = (input_ids != PAD_ID).long()  # (B, Lmax)
-    labels = torch.stack(labels_list, dim=0).float()  # (B, 1)
+    labels = torch.stack([t.reshape(()) for t in labels_list], dim=0).float()  # (B,)
 
-    return {
-        "input_ids": input_ids,
-        "attention_mask": attention_mask,
-        "labels": labels,
-        "lengths": lengths,
-    }
+    return {"input_ids": input_ids, "labels": labels}
 
 
-# =========================
-# モデル：Embedding + mean pooling + Linear
-# =========================
-class MeanPoolClassifier(nn.Module):
-    def __init__(self, emb_matrix: np.ndarray, pad_id: int = 0, freeze_emb: bool = False):
+# ========= Model =========
+class MeanEmbeddingClassifier(nn.Module):
+    def __init__(self, emb_matrix: np.ndarray, pad_id: int = 0, freeze: bool = True):
         super().__init__()
-        emb_tensor = torch.from_numpy(emb_matrix)  # float32 (V, D)
-
+        emb_tensor = torch.tensor(emb_matrix, dtype=torch.float32)
         self.embedding = nn.Embedding.from_pretrained(
-            embeddings=emb_tensor,
-            freeze=freeze_emb,      # ★問題74：ここを比較
-            padding_idx=pad_id
+            emb_tensor,
+            freeze=freeze,
+            padding_idx=pad_id,
         )
-        emb_dim = emb_tensor.size(1)
-        self.classifier = nn.Linear(emb_dim, 1)
+        emb_dim = emb_tensor.shape[1]
+        self.fc = nn.Linear(emb_dim, 1)
 
-    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         x = self.embedding(input_ids)  # (B, L, D)
 
-        # PADを除いて平均（mean pooling）
-        mask = attention_mask.unsqueeze(-1).float()  # (B, L, 1)
+        mask = (input_ids != PAD_ID).unsqueeze(-1).float()  # (B, L, 1)
         x = x * mask
-        sum_vec = x.sum(dim=1)                  # (B, D)
-        denom = mask.sum(dim=1).clamp(min=1.0)  # (B, 1)
-        mean_vec = sum_vec / denom              # (B, D)
 
-        logits = self.classifier(mean_vec)      # (B, 1)
+        lengths = mask.sum(dim=1).clamp(min=1.0)            # (B, 1)
+        sent_vec = x.sum(dim=1) / lengths                   # (B, D)
+
+        logits = self.fc(sent_vec).squeeze(-1)              # (B,)
         return logits
 
 
-# =========================
-# 評価（loss / accuracy）
-# =========================
+# ========= Evaluate =========
 @torch.no_grad()
-def evaluate(model: nn.Module, loader: DataLoader, criterion: nn.Module) -> Dict[str, float]:
+def evaluate(model: nn.Module, loader: DataLoader) -> Dict[str, float]:
     model.eval()
+    criterion = nn.BCEWithLogitsLoss()
+
     total_loss = 0.0
     total_correct = 0
     total_count = 0
 
     for batch in loader:
         input_ids = batch["input_ids"].to(DEVICE)
-        attention_mask = batch["attention_mask"].to(DEVICE)
-        labels = batch["labels"].to(DEVICE)  # (B,1)
+        labels = batch["labels"].to(DEVICE)
 
-        logits = model(input_ids, attention_mask)  # (B,1)
+        logits = model(input_ids)
         loss = criterion(logits, labels)
 
-        total_loss += loss.item() * labels.size(0)
+        bsz = labels.size(0)
+        total_loss += loss.item() * bsz
+        total_count += bsz
 
         probs = torch.sigmoid(logits)
         preds = (probs >= 0.5).float()
         total_correct += (preds == labels).sum().item()
-        total_count += labels.numel()
 
     return {
         "loss": total_loss / max(1, total_count),
@@ -147,77 +115,25 @@ def evaluate(model: nn.Module, loader: DataLoader, criterion: nn.Module) -> Dict
     }
 
 
-# =========================
-# 学習（freezeの設定を変えて比較）
-# =========================
-def train_and_eval(freeze_emb: bool, emb_matrix: np.ndarray, train_loader: DataLoader, dev_loader: DataLoader) -> Dict[str, float]:
-    model = MeanPoolClassifier(emb_matrix, pad_id=PAD_ID, freeze_emb=freeze_emb).to(DEVICE)
-    criterion = nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
-
-    best_dev_acc = 0.0
-    best_dev_loss = float("inf")
-
-    for epoch in range(1, EPOCHS + 1):
-        model.train()
-        running_loss = 0.0
-        total = 0
-
-        for batch in train_loader:
-            input_ids = batch["input_ids"].to(DEVICE)
-            attention_mask = batch["attention_mask"].to(DEVICE)
-            labels = batch["labels"].to(DEVICE)
-
-            optimizer.zero_grad()
-            logits = model(input_ids, attention_mask)
-            loss = criterion(logits, labels)
-            loss.backward()
-            optimizer.step()
-
-            running_loss += loss.item() * labels.size(0)
-            total += labels.size(0)
-
-        train_loss = running_loss / max(1, total)
-        dev_metrics = evaluate(model, dev_loader, criterion)
-
-        best_dev_acc = max(best_dev_acc, dev_metrics["acc"])
-        best_dev_loss = min(best_dev_loss, dev_metrics["loss"])
-
-        mode = "freeze" if freeze_emb else "finetune"
-        print(
-            f"[{mode}][Epoch {epoch:02d}] "
-            f"train_loss={train_loss:.4f} | dev_loss={dev_metrics['loss']:.4f} | dev_acc={dev_metrics['acc']:.4f}"
-        )
-
-    return {
-        "freeze_emb": freeze_emb,
-        "best_dev_acc": best_dev_acc,
-        "best_dev_loss": best_dev_loss,
-    }
+def list_checkpoints(out_dir: str) -> List[Tuple[int, str]]:
+    """OUT_DIRから out_73_fc_epochXX.pt を見つけて epoch順で返す"""
+    found = []
+    for fn in os.listdir(out_dir):
+        m = CKPT_REGEX.match(fn)
+        if m:
+            epoch = int(m.group(1))
+            found.append((epoch, os.path.join(out_dir, fn)))
+    found.sort(key=lambda x: x[0])
+    return found
 
 
-# =========================
-# main
-# =========================
 def main():
-    set_seed(SEED)
     print(f"device: {DEVICE}")
 
-    emb_matrix = np.load(EMB_MATRIX_PATH)
-    print("embedding matrix:", emb_matrix.shape)
-
-    with open(TRAIN_PKL_PATH, "rb") as f:
-        train_data = pickle.load(f)
+    # dev data
     with open(DEV_PKL_PATH, "rb") as f:
         dev_data = pickle.load(f)
 
-    train_loader = DataLoader(
-        SSTDataset(train_data),
-        batch_size=BATCH_SIZE,
-        shuffle=True,
-        num_workers=NUM_WORKERS,
-        collate_fn=collate_fn,
-    )
     dev_loader = DataLoader(
         SSTDataset(dev_data),
         batch_size=BATCH_SIZE,
@@ -226,20 +142,50 @@ def main():
         collate_fn=collate_fn,
     )
 
-    print("\n" + "=" * 60)
-    print("Case 1: 埋め込みを固定（freeze_emb=True）")
-    print("=" * 60)
-    res_freeze = train_and_eval(True, emb_matrix, train_loader, dev_loader)
+    # embedding matrix（固定。毎回同じものを使う）
+    emb_matrix = np.load(EMB_MATRIX_PATH)
 
-    print("\n" + "=" * 60)
-    print("Case 2: 埋め込みも更新（freeze_emb=False）")
-    print("=" * 60)
-    res_finetune = train_and_eval(False, emb_matrix, train_loader, dev_loader)
+    # checkpoint一覧
+    ckpts = list_checkpoints(OUT_DIR)
+    if not ckpts:
+        raise FileNotFoundError(f"No checkpoints matched in {OUT_DIR}: out_73_fc_epochXX.pt")
 
-    print("\n=== Summary ===")
-    for r in [res_freeze, res_finetune]:
-        mode = "freeze" if r["freeze_emb"] else "finetune"
-        print(f"{mode:8s} | best_dev_acc={r['best_dev_acc']:.4f} | best_dev_loss={r['best_dev_loss']:.4f}")
+    print(f"found {len(ckpts)} checkpoints in {OUT_DIR}\n")
+
+    results = []
+    best = None  # (acc, epoch, path, loss)
+
+    for epoch, path in ckpts:
+        # 毎epoch、同一構造のモデルを作って fc を読み込む
+        model = MeanEmbeddingClassifier(emb_matrix, pad_id=PAD_ID, freeze=True).to(DEVICE)
+
+        ckpt = torch.load(path, map_location=DEVICE)
+        if "fc_state_dict" not in ckpt:
+            raise KeyError(f"'fc_state_dict' not found in {path}. keys={list(ckpt.keys())}")
+
+        model.fc.load_state_dict(ckpt["fc_state_dict"])
+
+        metrics = evaluate(model, dev_loader)
+        results.append((epoch, metrics["loss"], metrics["acc"], path))
+
+        if best is None or metrics["acc"] > best[0]:
+            best = (metrics["acc"], epoch, path, metrics["loss"])
+
+        print(f"[epoch {epoch:02d}] dev_loss={metrics['loss']:.4f} dev_acc={metrics['acc']:.4f}  ({os.path.basename(path)})")
+
+    print("\n=== summary ===")
+    # 表っぽく
+    print("epoch\tdev_loss\tdev_acc\tcheckpoint")
+    for epoch, loss, acc, path in results:
+        print(f"{epoch:02d}\t{loss:.4f}\t{acc:.4f}\t{os.path.basename(path)}")
+
+    if best is not None:
+        best_acc, best_epoch, best_path, best_loss = best
+        print("\n=== best ===")
+        print(f"best_epoch : {best_epoch:02d}")
+        print(f"best_acc   : {best_acc:.4f}")
+        print(f"best_loss  : {best_loss:.4f}")
+        print(f"ckpt       : {best_path}")
 
 
 if __name__ == "__main__":
