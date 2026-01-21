@@ -42,7 +42,7 @@ def set_seed(seed: int) -> None:
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-# Dataset（問題71の形式に合わせる）
+# Dataset
 class SSTDataset(Dataset):
     def __init__(self, data: List[Dict[str, Any]]):
         self.data = data
@@ -57,10 +57,7 @@ class SSTDataset(Dataset):
             "label": item["label"],          # FloatTensor shape (1,)
         }
 
-
-# =========================
-# collate_fn（可変長をPADしてバッチ化）
-# =========================
+# 可変長をPADしてバッチ化
 def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
     input_ids_list = [x["input_ids"] for x in batch]
     labels_list = [x["label"] for x in batch]
@@ -79,18 +76,8 @@ def collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
         "labels": labels,
     }
 
-
-# =========================
-# 問72モデル：Embedding + mean pooling + Linear（logits出力）
-# =========================
+# Embedding + mean pooling + Linear（logits出力）
 class MeanEmbeddingClassifier(nn.Module):
-    """
-    問72: 単語埋め込みの平均ベクトルを文ベクトルとして用い、
-          線形層で2値分類（SST-2: 0/1）するモデル。
-    - embedding は問70で作った行列を使用
-    - padding_idx=0 を想定
-    - 出力は「ロジット」(sigmoid前) を返す
-    """
     def __init__(self, emb_matrix: np.ndarray, freeze: bool = True):
         super().__init__()
         emb_tensor = torch.tensor(emb_matrix, dtype=torch.float32)
@@ -101,13 +88,9 @@ class MeanEmbeddingClassifier(nn.Module):
             padding_idx=PAD_ID,
         )
         emb_dim = emb_tensor.shape[1]
-        self.fc = nn.Linear(emb_dim, 1)  # 2値なので1ユニット（BCEWithLogitsLoss想定）
+        self.fc = nn.Linear(emb_dim, 1) 
 
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
-        """
-        input_ids: (B, L) の LongTensor（padding込み）
-        returns: logits (B,) の FloatTensor
-        """
         x = self.embedding(input_ids)  # (B, L, D)
 
         # PAD(=0) を除外して平均
@@ -120,16 +103,13 @@ class MeanEmbeddingClassifier(nn.Module):
         logits = self.fc(sent_vec).squeeze(-1)              # (B,)
         return logits
 
-
-# =========================
 # 評価（loss / accuracy）
-# =========================
 @torch.no_grad()
 def evaluate(model: nn.Module, loader: DataLoader, criterion: nn.Module) -> Dict[str, float]:
     model.eval()
     total_loss = 0.0
     total_correct = 0
-    total_count = 0  # サンプル数（Bの合計）
+    total_count = 0  
 
     for batch in loader:
         input_ids = batch["input_ids"].to(DEVICE)
@@ -152,9 +132,6 @@ def evaluate(model: nn.Module, loader: DataLoader, criterion: nn.Module) -> Dict
     }
 
 
-# =========================
-# main
-# =========================
 def main():
     set_seed(SEED)
     print(f"device: {DEVICE}")
@@ -163,7 +140,7 @@ def main():
     emb_matrix = np.load(EMB_MATRIX_PATH)  # (V, D) float32
     print("embedding matrix:", emb_matrix.shape)
 
-    # データ（問題71の出力）
+    # データ
     with open(TRAIN_PKL_PATH, "rb") as f:
         train_data = pickle.load(f)
     with open(DEV_PKL_PATH, "rb") as f:
@@ -187,13 +164,13 @@ def main():
         collate_fn=collate_fn,
     )
 
-    # モデル（問72）
+    # モデル
     model = MeanEmbeddingClassifier(emb_matrix, freeze=FREEZE_EMB).to(DEVICE)
 
-    # 損失：2値分類（logitsを直接入れる）
+    # 損失
     criterion = nn.BCEWithLogitsLoss()
 
-    # 最適化：問73の意図を明確化（線形層のみ学習）
+    # 最適化
     optimizer = torch.optim.AdamW(
         model.fc.parameters(),
         lr=LR,
@@ -233,7 +210,7 @@ def main():
             f"dev_acc={dev_metrics['acc']:.4f}"
         )
 
-        # ベストモデル保存（任意）
+        # ベストモデル保存
         if dev_metrics["acc"] > best_dev_acc:
             best_dev_acc = dev_metrics["acc"]
             torch.save(model.state_dict(), SAVE_PATH)
