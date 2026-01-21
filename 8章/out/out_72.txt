@@ -1,0 +1,7 @@
+Loading embedding matrix ...
+Loading datasets ...
+=== 問72 forward check ===
+batch shape      : torch.Size([3, 11])
+logits shape     : torch.Size([3])
+logits           : tensor([-0.0173, -0.0345, -0.0341])
+labels (raw)     : [0.0, 0.0, 1.0]

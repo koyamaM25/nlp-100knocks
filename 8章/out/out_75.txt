@@ -1,0 +1,44 @@
+device: cuda
+embedding matrix: (3000001, 300)
+
+============================================================
+Start training: dropout=0.0
+============================================================
+[dropout=0.0][Epoch 01] train_loss=0.3778 | dev_loss=0.4089 | dev_acc=0.8222
+[dropout=0.0][Epoch 02] train_loss=0.2304 | dev_loss=0.4260 | dev_acc=0.8154
+[dropout=0.0][Epoch 03] train_loss=0.1901 | dev_loss=0.4532 | dev_acc=0.8200
+[dropout=0.0][Epoch 04] train_loss=0.1694 | dev_loss=0.4949 | dev_acc=0.8131
+[dropout=0.0][Epoch 05] train_loss=0.1574 | dev_loss=0.5234 | dev_acc=0.8096
+
+============================================================
+Start training: dropout=0.1
+============================================================
+[dropout=0.1][Epoch 01] train_loss=0.3851 | dev_loss=0.4071 | dev_acc=0.8326
+[dropout=0.1][Epoch 02] train_loss=0.2352 | dev_loss=0.4210 | dev_acc=0.8222
+[dropout=0.1][Epoch 03] train_loss=0.1949 | dev_loss=0.4504 | dev_acc=0.8188
+[dropout=0.1][Epoch 04] train_loss=0.1727 | dev_loss=0.4869 | dev_acc=0.8096
+[dropout=0.1][Epoch 05] train_loss=0.1601 | dev_loss=0.5129 | dev_acc=0.8119
+
+============================================================
+Start training: dropout=0.3
+============================================================
+[dropout=0.3][Epoch 01] train_loss=0.3952 | dev_loss=0.4119 | dev_acc=0.8154
+[dropout=0.3][Epoch 02] train_loss=0.2448 | dev_loss=0.4120 | dev_acc=0.8222
+[dropout=0.3][Epoch 03] train_loss=0.2057 | dev_loss=0.4335 | dev_acc=0.8245
+[dropout=0.3][Epoch 04] train_loss=0.1839 | dev_loss=0.4591 | dev_acc=0.8142
+[dropout=0.3][Epoch 05] train_loss=0.1689 | dev_loss=0.4903 | dev_acc=0.8177
+
+============================================================
+Start training: dropout=0.5
+============================================================
+[dropout=0.5][Epoch 01] train_loss=0.4112 | dev_loss=0.4170 | dev_acc=0.8314
+[dropout=0.5][Epoch 02] train_loss=0.2594 | dev_loss=0.4130 | dev_acc=0.8222
+[dropout=0.5][Epoch 03] train_loss=0.2236 | dev_loss=0.4257 | dev_acc=0.8188
+[dropout=0.5][Epoch 04] train_loss=0.2012 | dev_loss=0.4401 | dev_acc=0.8154
+[dropout=0.5][Epoch 05] train_loss=0.1858 | dev_loss=0.4605 | dev_acc=0.8177
+
+=== Summary (best on dev) ===
+dropout=0.1 | best_dev_acc=0.8326 | best_dev_loss=0.4071
+dropout=0.5 | best_dev_acc=0.8314 | best_dev_loss=0.4130
+dropout=0.3 | best_dev_acc=0.8245 | best_dev_loss=0.4119
+dropout=0.0 | best_dev_acc=0.8222 | best_dev_loss=0.4089

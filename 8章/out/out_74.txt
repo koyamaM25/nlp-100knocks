@@ -1,0 +1,24 @@
+device: cuda
+embedding matrix: (3000001, 300)
+
+============================================================
+Case 1: 埋め込みを固定（freeze_emb=True）
+============================================================
+[freeze][Epoch 01] train_loss=0.5296 | dev_loss=0.5397 | dev_acc=0.7867
+[freeze][Epoch 02] train_loss=0.4281 | dev_loss=0.5009 | dev_acc=0.7833
+[freeze][Epoch 03] train_loss=0.3995 | dev_loss=0.4837 | dev_acc=0.7856
+[freeze][Epoch 04] train_loss=0.3863 | dev_loss=0.4694 | dev_acc=0.7959
+[freeze][Epoch 05] train_loss=0.3789 | dev_loss=0.4622 | dev_acc=0.8028
+
+============================================================
+Case 2: 埋め込みも更新（freeze_emb=False）
+============================================================
+[finetune][Epoch 01] train_loss=0.3813 | dev_loss=0.4077 | dev_acc=0.8337
+[finetune][Epoch 02] train_loss=0.2305 | dev_loss=0.4242 | dev_acc=0.8211
+[finetune][Epoch 03] train_loss=0.1902 | dev_loss=0.4573 | dev_acc=0.8177
+[finetune][Epoch 04] train_loss=0.1691 | dev_loss=0.4960 | dev_acc=0.8096
+[finetune][Epoch 05] train_loss=0.1576 | dev_loss=0.5228 | dev_acc=0.8085
+
+=== Summary ===
+freeze   | best_dev_acc=0.8028 | best_dev_loss=0.4622
+finetune | best_dev_acc=0.8337 | best_dev_loss=0.4077

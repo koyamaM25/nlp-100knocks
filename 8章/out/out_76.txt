@@ -1,0 +1,8 @@
+device: cuda
+embedding matrix: (3000001, 300)
+[Epoch 01] train_loss=0.2773 | dev_loss=0.3920 | dev_acc=0.8601
+[Epoch 02] train_loss=0.1468 | dev_loss=0.3864 | dev_acc=0.8612
+[Epoch 03] train_loss=0.1002 | dev_loss=0.3805 | dev_acc=0.8624
+[Epoch 04] train_loss=0.0750 | dev_loss=0.4853 | dev_acc=0.8532
+[Epoch 05] train_loss=0.0597 | dev_loss=0.4810 | dev_acc=0.8532
+saved: /home/koyama/nlp-100knocks/8章/out/out_76model_lstm.pt
