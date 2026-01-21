@@ -51,19 +51,7 @@ def convert_examples(
     examples: List[Tuple[str, int]],
     word2id: Dict[str, int],
 ) -> Tuple[List[Dict[str, Any]], int, int]:
-    """
-    (文, ラベル) を以下の辞書形式へ変換する：
-    {
-        "text": 元文,
-        "label": tensor([0.]) or tensor([1.]),
-        "input_ids": token id の tensor
-    }
 
-    語彙外のみで空になった文は除外する
-
-    戻り値：
-      dataset, 除外数, 全体数
-    """
     dataset = []
     dropped = 0
     total = 0

@@ -63,7 +63,7 @@ def load_pkl(path: str) -> List[Dict[str, Any]]:
 
 def pad_batch(batch_input_ids: List[torch.Tensor], pad_id: int = 0) -> torch.Tensor:
     """
-    問75を先取りしない範囲で、動作確認用に簡易 padding。
+    動作確認用に簡易 padding。
     batch_input_ids: それぞれ shape (Li,) の1次元LongTensor
     return: (B, Lmax)
     """
