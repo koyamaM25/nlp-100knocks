@@ -1,9 +1,13 @@
 device: cuda
 embedding matrix: (3000001, 300)
-[Epoch 01] train_loss=0.5296 | dev_loss=0.5397 | dev_acc=0.7867
-[Epoch 02] train_loss=0.4281 | dev_loss=0.5009 | dev_acc=0.7833
-[Epoch 03] train_loss=0.3995 | dev_loss=0.4837 | dev_acc=0.7856
-[Epoch 04] train_loss=0.3863 | dev_loss=0.4694 | dev_acc=0.7959
-[Epoch 05] train_loss=0.3789 | dev_loss=0.4622 | dev_acc=0.8028
-saved(best): /home/koyama/nlp-100knocks/8章/out/out_73_model.pt
-best_dev_acc: 0.8028
+[Epoch 01] train_loss=0.5296
+saved: /home/koyama/nlp-100knocks/8章/out/out_73_fc_epoch01.pt
+[Epoch 02] train_loss=0.4281
+saved: /home/koyama/nlp-100knocks/8章/out/out_73_fc_epoch02.pt
+[Epoch 03] train_loss=0.3995
+saved: /home/koyama/nlp-100knocks/8章/out/out_73_fc_epoch03.pt
+[Epoch 04] train_loss=0.3862
+saved: /home/koyama/nlp-100knocks/8章/out/out_73_fc_epoch04.pt
+[Epoch 05] train_loss=0.3788
+saved: /home/koyama/nlp-100knocks/8章/out/out_73_fc_epoch05.pt
+training finished.

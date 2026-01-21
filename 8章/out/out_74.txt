@@ -1,24 +1,22 @@
 device: cuda
-embedding matrix: (3000001, 300)
+found 5 checkpoints in /home/koyama/nlp-100knocks/8章/out
 
-============================================================
-Case 1: 埋め込みを固定（freeze_emb=True）
-============================================================
-[freeze][Epoch 01] train_loss=0.5296 | dev_loss=0.5397 | dev_acc=0.7867
-[freeze][Epoch 02] train_loss=0.4281 | dev_loss=0.5009 | dev_acc=0.7833
-[freeze][Epoch 03] train_loss=0.3995 | dev_loss=0.4837 | dev_acc=0.7856
-[freeze][Epoch 04] train_loss=0.3863 | dev_loss=0.4694 | dev_acc=0.7959
-[freeze][Epoch 05] train_loss=0.3789 | dev_loss=0.4622 | dev_acc=0.8028
+[epoch 01] dev_loss=0.5397 dev_acc=0.7867  (out_73_fc_epoch01.pt)
+[epoch 02] dev_loss=0.5001 dev_acc=0.7878  (out_73_fc_epoch02.pt)
+[epoch 03] dev_loss=0.4821 dev_acc=0.7924  (out_73_fc_epoch03.pt)
+[epoch 04] dev_loss=0.4729 dev_acc=0.7890  (out_73_fc_epoch04.pt)
+[epoch 05] dev_loss=0.4676 dev_acc=0.7901  (out_73_fc_epoch05.pt)
 
-============================================================
-Case 2: 埋め込みも更新（freeze_emb=False）
-============================================================
-[finetune][Epoch 01] train_loss=0.3813 | dev_loss=0.4077 | dev_acc=0.8337
-[finetune][Epoch 02] train_loss=0.2305 | dev_loss=0.4242 | dev_acc=0.8211
-[finetune][Epoch 03] train_loss=0.1902 | dev_loss=0.4573 | dev_acc=0.8177
-[finetune][Epoch 04] train_loss=0.1691 | dev_loss=0.4960 | dev_acc=0.8096
-[finetune][Epoch 05] train_loss=0.1576 | dev_loss=0.5228 | dev_acc=0.8085
+=== summary ===
+epoch   dev_loss        dev_acc checkpoint
+01      0.5397  0.7867  out_73_fc_epoch01.pt
+02      0.5001  0.7878  out_73_fc_epoch02.pt
+03      0.4821  0.7924  out_73_fc_epoch03.pt
+04      0.4729  0.7890  out_73_fc_epoch04.pt
+05      0.4676  0.7901  out_73_fc_epoch05.pt
 
-=== Summary ===
-freeze   | best_dev_acc=0.8028 | best_dev_loss=0.4622
-finetune | best_dev_acc=0.8337 | best_dev_loss=0.4077
+=== best ===
+best_epoch : 03
+best_acc   : 0.7924
+best_loss  : 0.4821
+ckpt       : /home/koyama/nlp-100knocks/8章/out/out_73_fc_epoch03.pt
