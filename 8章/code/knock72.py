@@ -15,14 +15,6 @@ os.makedirs(OUT_DIR, exist_ok=True)
 
 
 class MeanEmbeddingClassifier(nn.Module):
-    """
-    問72: 単語埋め込みの平均ベクトルを文ベクトルとして用い、
-          線形層で2値分類（SST-2: 0/1）するモデル。
-
-    - embedding は問70で作った行列を使用
-    - padding_idx=0 を想定
-    - 出力は「ロジット」(sigmoid前) を返す
-    """
     def __init__(self, emb_matrix: np.ndarray, freeze: bool = True):
         super().__init__()
         emb_tensor = torch.tensor(emb_matrix, dtype=torch.float32)
@@ -62,11 +54,6 @@ def load_pkl(path: str) -> List[Dict[str, Any]]:
 
 
 def pad_batch(batch_input_ids: List[torch.Tensor], pad_id: int = 0) -> torch.Tensor:
-    """
-    動作確認用に簡易 padding。
-    batch_input_ids: それぞれ shape (Li,) の1次元LongTensor
-    return: (B, Lmax)
-    """
     B = len(batch_input_ids)
     Lmax = max(x.size(0) for x in batch_input_ids)
     out = torch.full((B, Lmax), pad_id, dtype=torch.long)
