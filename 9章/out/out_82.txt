@@ -1,0 +1,10 @@
+fun	0.10712
+surprises	0.06635
+drama	0.04468
+stars	0.02722
+laughs	0.02541
+action	0.01952
+excitement	0.01904
+people	0.01829
+tension	0.01503
+music	0.01465
