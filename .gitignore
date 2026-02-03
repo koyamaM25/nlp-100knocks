@@ -11,3 +11,5 @@ __pycache__/
 /home/koyama/nlp-100knocks/8章/out/out_77_model_bilstm.pt
 /home/koyama/nlp-100knocks/8章/out/out_78_model_textcnn.pt
 /home/koyama/nlp-100knocks/8章/out/out_79_model_textcnn.pt
+/home/koyama/nlp-100knocks/9章/out/out_85_dev.pkl
+/home/koyama/nlp-100knocks/9章/out/out_85_train.pkl
