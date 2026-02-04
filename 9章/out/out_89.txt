@@ -1,0 +1,41 @@
+config.json: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 481/481 [00:00<00:00, 1.24MB/s]
+tokenizer_config.json: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 25.0/25.0 [00:00<00:00, 82.0kB/s]
+vocab.json: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 899k/899k [00:00<00:00, 1.48MB/s]
+merges.txt: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 456k/456k [00:00<00:00, 5.92MB/s]
+tokenizer.json: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1.36M/1.36M [00:00<00:00, 2.19MB/s]
+Tokenizing data...
+Loading model: roberta-base
+model.safetensors: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 499M/499M [00:07<00:00, 67.3MB/s]
+Loading weights: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████| 197/197 [00:00<00:00, 748.32it/s, Materializing param=roberta.encoder.layer.11.output.dense.weight]
+RobertaForSequenceClassification LOAD REPORT from: roberta-base
+Key                             | Status     | Details
+--------------------------------+------------+--------
+lm_head.dense.weight            | UNEXPECTED |        
+roberta.embeddings.position_ids | UNEXPECTED |        
+lm_head.layer_norm.bias         | UNEXPECTED |        
+lm_head.bias                    | UNEXPECTED |        
+lm_head.layer_norm.weight       | UNEXPECTED |        
+lm_head.dense.bias              | UNEXPECTED |        
+classifier.out_proj.bias        | MISSING    |        
+classifier.dense.bias           | MISSING    |        
+classifier.out_proj.weight      | MISSING    |        
+classifier.dense.weight         | MISSING    |        
+
+Notes:
+- UNEXPECTED    :can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING       :those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+Start training with cuda...
+
+--- Epoch 1/3 ---
+Training Loss: 0.2297
+Validation Accuracy: 0.9266
+
+--- Epoch 2/3 ---
+Training Loss: 0.1404
+Validation Accuracy: 0.9404
+
+--- Epoch 3/3 ---
+Training Loss: 0.1067
+Validation Accuracy: 0.9404
+Writing model shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:05<00:00,  5.14s/it]
+Saved RoBERTa model to /home/koyama/nlp-100knocks/9章/out/model_89_roberta
