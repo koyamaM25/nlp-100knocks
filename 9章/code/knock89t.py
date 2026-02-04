@@ -78,15 +78,15 @@ def compute_metrics(eval_pred):
 training_args = TrainingArguments(
     output_dir=MODEL_DIR,
     learning_rate=2e-5,
-    fp16=True,                  # メモリ節約・高速化
-    per_device_train_batch_size=32,  # バッチサイズ (GPUに合わせて調整可: 4~16)
+    fp16=True,                  
+    per_device_train_batch_size=32,  
     per_device_eval_batch_size=32,
-    dataloader_num_workers=0,   # フリーズ回避のためシングルスレッド
+    dataloader_num_workers=0,   
     num_train_epochs=3,
     weight_decay=0.01,
-    eval_strategy="epoch",      # エポックごとに評価
-    save_strategy="epoch",      # エポックごとに保存
-    logging_strategy="epoch",   # ログを見やすく
+    eval_strategy="epoch",      
+    save_strategy="epoch",      
+    logging_strategy="epoch",   
     load_best_model_at_end=True,
     save_total_limit=1,
 )
