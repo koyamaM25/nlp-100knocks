@@ -1,0 +1,24 @@
+
+==============================
+     Inference Results
+==============================
+Text:   The movie was full of incomprehensibilities.
+Result: Negative (Label: 0)
+Score:  0.9967
+------------------------------
+Text:   The movie was full of fun.
+Result: Positive (Label: 1)
+Score:  0.9990
+------------------------------
+Text:   The movie was full of excitement.
+Result: Positive (Label: 1)
+Score:  0.9980
+------------------------------
+Text:   The movie was full of crap.
+Result: Negative (Label: 0)
+Score:  0.9971
+------------------------------
+Text:   The movie was full of rubbish.
+Result: Negative (Label: 0)
+Score:  0.9970
+------------------------------
