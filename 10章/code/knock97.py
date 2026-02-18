@@ -7,9 +7,6 @@ import zipfile
 import os
 from typing import Dict, Any, List
 
-# =========================
-# Paths / Config
-# =========================
 OUTPUT_PATH = "/home/koyama/nlp-100knocks/10章/out"
 os.makedirs(OUTPUT_PATH, exist_ok=True)
 OUT_LOG = os.path.join(OUTPUT_PATH, "out_97.txt")
@@ -28,9 +25,6 @@ EPOCHS = 3
 LR = 1e-3
 SEED = 42
 
-# =========================
-# Load SST-2 from zip
-# =========================
 def load_sst2_data():
     with zipfile.ZipFile(SST2_PATH, "r") as z:
         with z.open("SST-2/train.tsv") as f:
@@ -41,17 +35,11 @@ def load_sst2_data():
 
 df_train, df_dev = load_sst2_data()
 
-# =========================
 # Tokenizer
-# =========================
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-# GPT-2 has no pad token by default -> set pad to eos for batching
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
-# =========================
-# Torch Dataset (pre-tokenized)
-# =========================
 class SST2TorchDataset(torch.utils.data.Dataset):
     def __init__(self, sentences: List[str], labels: List[int], tokenizer, max_len: int):
         self.enc = tokenizer(
@@ -86,9 +74,7 @@ dev_dataset = SST2TorchDataset(
     MAX_LEN,
 )
 
-# =========================
 # Model: Frozen GPT-2 encoder + FFN classifier
-# =========================
 class GPT2EmbedClassifier(nn.Module):
     def __init__(self, model_name: str, hidden_dim: int = 256, dropout: float = 0.1):
         super().__init__()
@@ -103,20 +89,19 @@ class GPT2EmbedClassifier(nn.Module):
         self.fc2 = nn.Linear(hidden_dim, 2)
 
     def masked_mean_pool(self, last_hidden: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
-        # last_hidden: (B, L, H), attention_mask: (B, L)
-        mask = attention_mask.unsqueeze(-1).float()          # (B, L, 1)
-        summed = (last_hidden * mask).sum(dim=1)             # (B, H)
-        counts = mask.sum(dim=1).clamp(min=1.0)              # (B, 1)
-        return summed / counts                               # (B, H)
+        mask = attention_mask.unsqueeze(-1).float()          
+        summed = (last_hidden * mask).sum(dim=1)             
+        counts = mask.sum(dim=1).clamp(min=1.0)              
+        return summed / counts                               
 
     def forward(self, input_ids=None, attention_mask=None, labels=None):
         out = self.encoder(input_ids=input_ids, attention_mask=attention_mask, return_dict=True)
-        last_hidden = out.last_hidden_state                  # (B, L, H)
-        emb = self.masked_mean_pool(last_hidden, attention_mask)  # (B, H)
+        last_hidden = out.last_hidden_state                  
+        emb = self.masked_mean_pool(last_hidden, attention_mask)  
 
         x = F.relu(self.fc1(emb))
         x = self.drop(x)
-        logits = self.fc2(x)                                 # (B, 2)
+        logits = self.fc2(x)                                 
 
         loss = None
         if labels is not None:
@@ -142,15 +127,12 @@ trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=train_dataset,
-    eval_dataset=dev_dataset,
-    # tokenizer=tokenizer,  # 古いtransformersだと未対応なので渡さない
-)
+    eval_dataset=dev_dataset
+ )
 
 trainer.train()
 
-# =========================
-# Evaluate (accuracy)
-# =========================
+#評価
 pred_out = trainer.predict(dev_dataset)
 preds = pred_out.predictions
 # predictions can be numpy or torch; normalize

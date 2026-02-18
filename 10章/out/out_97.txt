@@ -1,0 +1,7 @@
+MODEL=gpt2
+FEATURE=GPT2 last_hidden mean pooling (frozen)
+HEAD=2-layer MLP
+
+epoch=1	train_loss=0.412270	dev_acc=0.821101
+epoch=2	train_loss=0.366579	dev_acc=0.840596
+epoch=3	train_loss=0.356072	dev_acc=0.837156

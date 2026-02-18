@@ -1,0 +1,7 @@
+MODEL=gpt2
+TASK=GLUE SST-2
+FORMAT=prompt + label_text; loss on label tokens only
+MAX_LEN=192, EPOCHS=1, BATCH_SIZE=8, LR=5e-05
+
+dev_acc_before_ft (first 500 ex): 0.590000
+dev_acc_after_ft (full dev): 0.912844
