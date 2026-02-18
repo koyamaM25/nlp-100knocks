@@ -1,0 +1,72 @@
+=== Zero-shot (generate) ===
+
+[0]
+Sentence: it 's a charming and often affecting journey . 
+Gold: 1
+Pred: 0
+Generated: it is a very good
+
+[1]
+Sentence: unflinchingly bleak and desperate 
+Gold: 0
+Pred: 0
+Generated: "i'm not sure
+
+[2]
+Sentence: allows us to hope that nolan is poised to embark a major career as a commercial yet inventive filmmaker . 
+Gold: 1
+Pred: 1
+Generated: "positive" or "
+
+[3]
+Sentence: the acting , costumes , music , cinematography and sound are all astounding given the production 's austere locales . 
+Gold: 1
+Pred: 0
+Generated: the acting , costumes ,
+
+[4]
+Sentence: it 's slow -- very , very slow . 
+Gold: 0
+Pred: 0
+Generated: it 's slow --
+
+Accuracy: 0.492
+
+=== Few-shot (generate) ===
+
+[0]
+Sentence: it 's a charming and often affecting journey . 
+Gold: 1
+Pred: 1
+Generated: positive
+sentence:
+
+[1]
+Sentence: unflinchingly bleak and desperate 
+Gold: 0
+Pred: 1
+Generated: positive
+sentence:
+
+[2]
+Sentence: allows us to hope that nolan is poised to embark a major career as a commercial yet inventive filmmaker . 
+Gold: 1
+Pred: 1
+Generated: positive
+sentence:
+
+[3]
+Sentence: the acting , costumes , music , cinematography and sound are all astounding given the production 's austere locales . 
+Gold: 1
+Pred: 1
+Generated: positive
+sentence:
+
+[4]
+Sentence: it 's slow -- very , very slow . 
+Gold: 0
+Pred: 0
+Generated: negative
+sentence:
+
+Accuracy few-shot: 0.581

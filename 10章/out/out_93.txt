@@ -1,0 +1,7 @@
+text	ppl	avg_nll	n_tokens
+The movie was full of big laughs.	52.728310	3.965153	7
+The movie was full of big laugh.	181.369995	5.200539	7
+The movie was full of action, comedy, and a lot of fun.	15.628027	2.749066	14
+The movie was full of action comedy and lot fun.	135.606674	4.909759	10
+I have a pen.	85.983871	4.454160	4
+I has a pen.	122.680939	4.809587	4
